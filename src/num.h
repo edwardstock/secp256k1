@@ -7,6 +7,10 @@
 #ifndef SECP256K1_NUM_H
 #define SECP256K1_NUM_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef USE_NUM_NONE
 
 #if defined HAVE_CONFIG_H
@@ -70,5 +74,10 @@ static int secp256k1_num_is_neg(const secp256k1_num *a);
 static void secp256k1_num_negate(secp256k1_num *r);
 
 #endif
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* SECP256K1_NUM_H */

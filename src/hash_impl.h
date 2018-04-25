@@ -7,6 +7,10 @@
 #ifndef SECP256K1_HASH_IMPL_H
 #define SECP256K1_HASH_IMPL_H
 
+//#ifdef __cplusplus
+//extern "C" {
+//#endif
+
 #include "hash.h"
 
 #include <stdlib.h>
@@ -278,5 +282,10 @@ static void secp256k1_rfc6979_hmac_sha256_finalize(secp256k1_rfc6979_hmac_sha256
 #undef Sigma0
 #undef Maj
 #undef Ch
+
+
+//#ifdef __cplusplus
+//extern "C" {
+//#endif
 
 #endif /* SECP256K1_HASH_IMPL_H */

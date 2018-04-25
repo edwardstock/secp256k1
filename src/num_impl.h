@@ -7,6 +7,10 @@
 #ifndef SECP256K1_NUM_IMPL_H
 #define SECP256K1_NUM_IMPL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if defined HAVE_CONFIG_H
 #include "libsecp256k1-config.h"
 #endif
@@ -19,6 +23,10 @@
 /* Nothing. */
 #else
 #error "Please select num implementation"
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* SECP256K1_NUM_IMPL_H */

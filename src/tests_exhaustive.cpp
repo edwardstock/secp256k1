@@ -23,7 +23,7 @@
 
 #include "include/secp256k1.h"
 #include "group.h"
-#include "secp256k1.c"
+#include "secp256k1.cpp"
 #include "testrand_impl.h"
 
 #ifdef ENABLE_MODULE_RECOVERY
@@ -51,9 +51,12 @@ void ge_equals_gej(const secp256k1_ge *a, const secp256k1_gej *b) {
     /* Check a.x * b.z^2 == b.x && a.y * b.z^3 == b.y, to avoid inverses. */
     secp256k1_fe_sqr(&z2s, &b->z);
     secp256k1_fe_mul(&u1, &a->x, &z2s);
-    u2 = b->x; secp256k1_fe_normalize_weak(&u2);
-    secp256k1_fe_mul(&s1, &a->y, &z2s); secp256k1_fe_mul(&s1, &s1, &b->z);
-    s2 = b->y; secp256k1_fe_normalize_weak(&s2);
+    u2 = b->x;
+    secp256k1_fe_normalize_weak(&u2);
+    secp256k1_fe_mul(&s1, &a->y, &z2s);
+    secp256k1_fe_mul(&s1, &s1, &b->z);
+    s2 = b->y;
+    secp256k1_fe_normalize_weak(&s2);
     CHECK(secp256k1_fe_equal_var(&u1, &u2));
     CHECK(secp256k1_fe_equal_var(&s1, &s2));
 }
@@ -65,7 +68,7 @@ void random_fe(secp256k1_fe *x) {
         if (secp256k1_fe_set_b32(x, bin)) {
             return;
         }
-    } while(1);
+    } while (1);
 }
 /** END stolen from tests.c */
 
@@ -74,9 +77,9 @@ int secp256k1_nonce_function_smallint(unsigned char *nonce32, const unsigned cha
                                       void *data, unsigned int attempt) {
     secp256k1_scalar s;
     int *idata = data;
-    (void)msg32;
-    (void)key32;
-    (void)algo16;
+    (void) msg32;
+    (void) key32;
+    (void) algo16;
     /* Some nonces cannot be used because they'd cause s and/or r to be zero.
      * The signing function has retry logic here that just re-calls the nonce
      * function with an increased `attempt`. So if attempt > 0 this means we
@@ -160,7 +163,10 @@ void test_exhaustive_addition(const secp256k1_ge *group, const secp256k1_gej *gr
     }
 }
 
-void test_exhaustive_ecmult(const secp256k1_context *ctx, const secp256k1_ge *group, const secp256k1_gej *groupj, int order) {
+void test_exhaustive_ecmult(const secp256k1_context *ctx,
+                            const secp256k1_ge *group,
+                            const secp256k1_gej *groupj,
+                            int order) {
     int i, j, r_log;
     for (r_log = 1; r_log < order; r_log++) {
         for (j = 0; j < order; j++) {
@@ -183,12 +189,12 @@ void test_exhaustive_ecmult(const secp256k1_context *ctx, const secp256k1_ge *gr
 }
 
 typedef struct {
-    secp256k1_scalar sc[2];
-    secp256k1_ge pt[2];
+  secp256k1_scalar sc[2];
+  secp256k1_ge pt[2];
 } ecmult_multi_data;
 
 static int ecmult_multi_callback(secp256k1_scalar *sc, secp256k1_ge *pt, size_t idx, void *cbdata) {
-    ecmult_multi_data *data = (ecmult_multi_data*) cbdata;
+    ecmult_multi_data *data = (ecmult_multi_data *) cbdata;
     *sc = data->sc[idx];
     *pt = data->pt[idx];
     return 1;
@@ -212,7 +218,13 @@ void test_exhaustive_ecmult_multi(const secp256k1_context *ctx, const secp256k1_
                         data.pt[0] = group[x];
                         data.pt[1] = group[y];
 
-                        secp256k1_ecmult_multi_var(&ctx->ecmult_ctx, scratch, &tmp, &g_sc, ecmult_multi_callback, &data, 2);
+                        secp256k1_ecmult_multi_var(&ctx->ecmult_ctx,
+                                                   scratch,
+                                                   &tmp,
+                                                   &g_sc,
+                                                   ecmult_multi_callback,
+                                                   &data,
+                                                   2);
                         ge_equals_gej(&group[(i * x + j * y + k) % order], &tmp);
                     }
                 }
@@ -275,7 +287,7 @@ void test_exhaustive_verify(const secp256k1_context *ctx, const secp256k1_ge *gr
                     secp256k1_pubkey_save(&pk, &nonconst_ge);
                     secp256k1_scalar_get_b32(msg32, &msg_s);
                     CHECK(should_verify ==
-                          secp256k1_ecdsa_verify(ctx, &sig, msg32, &pk));
+                        secp256k1_ecdsa_verify(ctx, &sig, msg32, &pk));
                 }
             }
         }
@@ -307,7 +319,7 @@ void test_exhaustive_sign(const secp256k1_context *ctx, const secp256k1_ge *grou
                 r_from_k(&expected_r, group, k);
                 CHECK(r == expected_r);
                 CHECK((k * s) % order == (i + r * j) % order ||
-                      (k * (EXHAUSTIVE_TEST_ORDER - s)) % order == (i + r * j) % order);
+                    (k * (EXHAUSTIVE_TEST_ORDER - s)) % order == (i + r * j) % order);
 
                 /* Overflow means we've tried every possible nonce */
                 if (k < starting_k) {
@@ -355,7 +367,7 @@ void test_exhaustive_recovery_sign(const secp256k1_context *ctx, const secp256k1
                 r_from_k(&expected_r, group, k);
                 CHECK(r == expected_r);
                 CHECK((k * s) % order == (i + r * j) % order ||
-                      (k * (EXHAUSTIVE_TEST_ORDER - s)) % order == (i + r * j) % order);
+                    (k * (EXHAUSTIVE_TEST_ORDER - s)) % order == (i + r * j) % order);
                 /* In computing the recid, there is an overflow condition that is disabled in
                  * scalar_low_impl.h `secp256k1_scalar_set_b32` because almost every r.y value
                  * will exceed the group order, and our signing code always holds out for r
@@ -380,7 +392,7 @@ void test_exhaustive_recovery_sign(const secp256k1_context *ctx, const secp256k1
                 r_from_k(&expected_r, group, k);
                 CHECK(r == expected_r);
                 CHECK((k * s) % order == (i + r * j) % order ||
-                      (k * (EXHAUSTIVE_TEST_ORDER - s)) % order == (i + r * j) % order);
+                    (k * (EXHAUSTIVE_TEST_ORDER - s)) % order == (i + r * j) % order);
 
                 /* Overflow means we've tried every possible nonce */
                 if (k < starting_k) {
@@ -443,7 +455,7 @@ void test_exhaustive_recovery_verify(const secp256k1_context *ctx, const secp256
                     memcpy(&nonconst_ge, &group[sk_s], sizeof(nonconst_ge));
                     secp256k1_pubkey_save(&pk, &nonconst_ge);
                     CHECK(should_verify ==
-                          secp256k1_ecdsa_verify(ctx, &sig, msg32, &pk));
+                        secp256k1_ecdsa_verify(ctx, &sig, msg32, &pk));
                 }
             }
         }

@@ -7,6 +7,14 @@
 #ifndef SECP256K1_UTIL_H
 #define SECP256K1_UTIL_H
 
+#ifndef HAVE___INT128
+#include "uint128_t/uint128_t.h"
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if defined HAVE_CONFIG_H
 #include "libsecp256k1-config.h"
 #endif
@@ -16,8 +24,8 @@
 #include <stdio.h>
 
 typedef struct {
-    void (*fn)(const char *text, void* data);
-    const void* data;
+  void (*fn)(const char *text, void* data);
+  const void* data;
 } secp256k1_callback;
 
 static SECP256K1_INLINE void secp256k1_callback_call(const secp256k1_callback * const cb, const char * const text) {
@@ -101,7 +109,7 @@ static SECP256K1_INLINE void *checked_realloc(const secp256k1_callback* cb, void
 # endif
 #endif
 
-#if defined(_WIN32)
+#ifdef _WIN32
 # define I64FORMAT "I64d"
 # define I64uFORMAT "I64u"
 #else
@@ -109,13 +117,17 @@ static SECP256K1_INLINE void *checked_realloc(const secp256k1_callback* cb, void
 # define I64uFORMAT "llu"
 #endif
 
-#if defined(HAVE___INT128)
-# if defined(__GNUC__)
-#  define SECP256K1_GNUC_EXT __extension__
-# else
-#  define SECP256K1_GNUC_EXT
-# endif
+#ifdef HAVE___INT128
+#ifdef __GNUC__
+#define SECP256K1_GNUC_EXT __extension__
+#else
+#define SECP256K1_GNUC_EXT
+#endif
 SECP256K1_GNUC_EXT typedef unsigned __int128 uint128_t;
+#endif
+
+#ifdef __cplusplus
+};
 #endif
 
 #endif /* SECP256K1_UTIL_H */

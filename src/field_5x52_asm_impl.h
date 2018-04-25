@@ -14,7 +14,16 @@
 #ifndef SECP256K1_FIELD_INNER5X52_IMPL_H
 #define SECP256K1_FIELD_INNER5X52_IMPL_H
 
-SECP256K1_INLINE static void secp256k1_fe_mul_inner(uint64_t *r, const uint64_t *a, const uint64_t * SECP256K1_RESTRICT b) {
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <include/secp256k1.h>
+
+SECP256K1_INLINE static void secp256k1_fe_mul_inner(uint64_t *r,
+                                                    const uint64_t *a,
+                                                    const uint64_t *SECP256K1_RESTRICT
+                                                    b) {
 /**
  * Registers: rdx:rax = multiplication accumulator
  *            r9:r8   = c
@@ -24,8 +33,8 @@ SECP256K1_INLINE static void secp256k1_fe_mul_inner(uint64_t *r, const uint64_t 
  *            rdi     = r
  *            rsi     = a / t?
  */
-  uint64_t tmp1, tmp2, tmp3;
-__asm__ __volatile__(
+    uint64_t tmp1, tmp2, tmp3;
+    __asm__ __volatile__(
     "movq 0(%%rsi),%%r10\n"
     "movq 8(%%rsi),%%r11\n"
     "movq 16(%%rsi),%%r12\n"
@@ -278,10 +287,10 @@ __asm__ __volatile__(
     "addq %%rsi,%%r8\n"
     /* r[4] = c */
     "movq %%r8,32(%%rdi)\n"
-: "+S"(a), "=m"(tmp1), "=m"(tmp2), "=m"(tmp3)
-: "b"(b), "D"(r)
-: "%rax", "%rcx", "%rdx", "%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15", "cc", "memory"
-);
+    : "+S"(a), "=m"(tmp1), "=m"(tmp2), "=m"(tmp3)
+    : "b"(b), "D"(r)
+    : "%rax", "%rcx", "%rdx", "%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15", "cc", "memory"
+    );
 }
 
 SECP256K1_INLINE static void secp256k1_fe_sqr_inner(uint64_t *r, const uint64_t *a) {
@@ -294,8 +303,8 @@ SECP256K1_INLINE static void secp256k1_fe_sqr_inner(uint64_t *r, const uint64_t 
  *            rdi     = r
  *            rsi     = a / t?
  */
-  uint64_t tmp1, tmp2, tmp3;
-__asm__ __volatile__(
+    uint64_t tmp1, tmp2, tmp3;
+    __asm__ __volatile__(
     "movq 0(%%rsi),%%r10\n"
     "movq 8(%%rsi),%%r11\n"
     "movq 16(%%rsi),%%r12\n"
@@ -493,10 +502,14 @@ __asm__ __volatile__(
     "addq %%rsi,%%r8\n"
     /* r[4] = c */
     "movq %%r8,32(%%rdi)\n"
-: "+S"(a), "=m"(tmp1), "=m"(tmp2), "=m"(tmp3)
-: "D"(r)
-: "%rax", "%rbx", "%rcx", "%rdx", "%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15", "cc", "memory"
-);
+    : "+S"(a), "=m"(tmp1), "=m"(tmp2), "=m"(tmp3)
+    : "D"(r)
+    : "%rax", "%rbx", "%rcx", "%rdx", "%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15", "cc", "memory"
+    );
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SECP256K1_FIELD_INNER5X52_IMPL_H */

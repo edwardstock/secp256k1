@@ -7,7 +7,16 @@
 #ifndef SECP256K1_MODULE_RECOVERY_TESTS_H
 #define SECP256K1_MODULE_RECOVERY_TESTS_H
 
-static int recovery_test_nonce_function(unsigned char *nonce32, const unsigned char *msg32, const unsigned char *key32, const unsigned char *algo16, void *data, unsigned int counter) {
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+static int recovery_test_nonce_function(unsigned char *nonce32,
+                                        const unsigned char *msg32,
+                                        const unsigned char *key32,
+                                        const unsigned char *algo16,
+                                        void *data,
+                                        unsigned int counter) {
     (void) msg32;
     (void) key32;
     (void) algo16;
@@ -38,16 +47,16 @@ void test_ecdsa_recovery_api(void) {
     secp256k1_pubkey recpubkey;
     secp256k1_ecdsa_signature normal_sig;
     secp256k1_ecdsa_recoverable_signature recsig;
-    unsigned char privkey[32] = { 1 };
-    unsigned char message[32] = { 2 };
+    unsigned char privkey[32] = {1};
+    unsigned char message[32] = {2};
     int32_t ecount = 0;
     int recid = 0;
     unsigned char sig[74];
-    unsigned char zero_privkey[32] = { 0 };
-    unsigned char over_privkey[32] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+    unsigned char zero_privkey[32] = {0};
+    unsigned char over_privkey[32] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
     secp256k1_context_set_error_callback(none, counting_illegal_callback_fn, &ecount);
     secp256k1_context_set_error_callback(sign, counting_illegal_callback_fn, &ecount);
@@ -202,7 +211,7 @@ void test_ecdsa_recovery_end_to_end(void) {
     CHECK(secp256k1_ecdsa_verify(ctx, &signature[4], message, &pubkey) == 0);
     /* Recover again */
     CHECK(secp256k1_ecdsa_recover(ctx, &recpubkey, &rsignature[4], message) == 0 ||
-          memcmp(&pubkey, &recpubkey, sizeof(pubkey)) != 0);
+        memcmp(&pubkey, &recpubkey, sizeof(pubkey)) != 0);
 }
 
 /* Tests several edge cases. */
@@ -328,16 +337,17 @@ void test_ecdsa_recovery_edge_cases(void) {
         sigbder[7]--;
         CHECK(secp256k1_ecdsa_signature_parse_der(ctx, &sig, sigbder, 6) == 0);
         CHECK(secp256k1_ecdsa_signature_parse_der(ctx, &sig, sigbder, sizeof(sigbder) - 1) == 0);
-        for(i = 0; i < 8; i++) {
+        for (i = 0; i < 8; i++) {
             int c;
             unsigned char orig = sigbder[i];
             /*Try every single-byte change.*/
             for (c = 0; c < 256; c++) {
-                if (c == orig ) {
+                if (c == orig) {
                     continue;
                 }
                 sigbder[i] = c;
-                CHECK(secp256k1_ecdsa_signature_parse_der(ctx, &sig, sigbder, sizeof(sigbder)) == 0 || secp256k1_ecdsa_verify(ctx, &sig, msg32, &pubkeyb) == 0);
+                CHECK(secp256k1_ecdsa_signature_parse_der(ctx, &sig, sigbder, sizeof(sigbder)) == 0
+                          || secp256k1_ecdsa_verify(ctx, &sig, msg32, &pubkeyb) == 0);
             }
             sigbder[i] = orig;
         }
@@ -384,10 +394,14 @@ void run_recovery_tests(void) {
     for (i = 0; i < count; i++) {
         test_ecdsa_recovery_api();
     }
-    for (i = 0; i < 64*count; i++) {
+    for (i = 0; i < 64 * count; i++) {
         test_ecdsa_recovery_end_to_end();
     }
     test_ecdsa_recovery_edge_cases();
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SECP256K1_MODULE_RECOVERY_TESTS_H */

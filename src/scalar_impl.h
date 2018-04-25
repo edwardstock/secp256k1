@@ -7,6 +7,10 @@
 #ifndef SECP256K1_SCALAR_IMPL_H
 #define SECP256K1_SCALAR_IMPL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "group.h"
 #include "scalar.h"
 
@@ -328,6 +332,10 @@ static void secp256k1_scalar_split_lambda(secp256k1_scalar *r1, secp256k1_scalar
     secp256k1_scalar_add(r1, r1, a);
 }
 #endif
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* SECP256K1_SCALAR_IMPL_H */

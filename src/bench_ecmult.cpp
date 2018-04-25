@@ -15,35 +15,35 @@
 #include "scalar_impl.h"
 #include "ecmult_impl.h"
 #include "bench.h"
-#include "secp256k1.c"
+#include "secp256k1.cpp"
 
 #define POINTS 32768
 #define ITERS 10000
 
 typedef struct {
-    /* Setup once in advance */
-    secp256k1_context* ctx;
-    secp256k1_scratch_space* scratch;
-    secp256k1_scalar* scalars;
-    secp256k1_ge* pubkeys;
-    secp256k1_scalar* seckeys;
-    secp256k1_gej* expected_output;
-    secp256k1_ecmult_multi_func ecmult_multi;
+  /* Setup once in advance */
+  secp256k1_context *ctx;
+  secp256k1_scratch_space *scratch;
+  secp256k1_scalar *scalars;
+  secp256k1_ge *pubkeys;
+  secp256k1_scalar *seckeys;
+  secp256k1_gej *expected_output;
+  secp256k1_ecmult_multi_func ecmult_multi;
 
-    /* Changes per test */
-    size_t count;
-    int includes_g;
+  /* Changes per test */
+  size_t count;
+  int includes_g;
 
-    /* Changes per test iteration */
-    size_t offset1;
-    size_t offset2;
+  /* Changes per test iteration */
+  size_t offset1;
+  size_t offset2;
 
-    /* Test output. */
-    secp256k1_gej* output;
+  /* Test output. */
+  secp256k1_gej *output;
 } bench_data;
 
-static int bench_callback(secp256k1_scalar* sc, secp256k1_ge* ge, size_t idx, void* arg) {
-    bench_data* data = (bench_data*)arg;
+static int bench_callback(secp256k1_scalar *sc, secp256k1_ge *ge, size_t idx, void *arg) {
+    bench_data *data = (bench_data *) arg;
     if (data->includes_g) ++idx;
     if (idx == 0) {
         *sc = data->scalars[data->offset1];
@@ -55,8 +55,8 @@ static int bench_callback(secp256k1_scalar* sc, secp256k1_ge* ge, size_t idx, vo
     return 1;
 }
 
-static void bench_ecmult(void* arg) {
-    bench_data* data = (bench_data*)arg;
+static void bench_ecmult(void *arg) {
+    bench_data *data = (bench_data *) arg;
 
     size_t count = data->count;
     int includes_g = data->includes_g;
@@ -64,20 +64,26 @@ static void bench_ecmult(void* arg) {
     size_t iter;
 
     for (iter = 0; iter < iters; ++iter) {
-        data->ecmult_multi(&data->ctx->ecmult_ctx, data->scratch, &data->output[iter], data->includes_g ? &data->scalars[data->offset1] : NULL, bench_callback, arg, count - includes_g);
+        data->ecmult_multi(&data->ctx->ecmult_ctx,
+                           data->scratch,
+                           &data->output[iter],
+                           data->includes_g ? &data->scalars[data->offset1] : NULL,
+                           bench_callback,
+                           arg,
+                           count - includes_g);
         data->offset1 = (data->offset1 + count) % POINTS;
         data->offset2 = (data->offset2 + count - 1) % POINTS;
     }
 }
 
-static void bench_ecmult_setup(void* arg) {
-    bench_data* data = (bench_data*)arg;
+static void bench_ecmult_setup(void *arg) {
+    bench_data *data = (bench_data *) arg;
     data->offset1 = (data->count * 0x537b7f6f + 0x8f66a481) % POINTS;
     data->offset2 = (data->count * 0x7f6f537b + 0x6a1a8f49) % POINTS;
 }
 
-static void bench_ecmult_teardown(void* arg) {
-    bench_data* data = (bench_data*)arg;
+static void bench_ecmult_teardown(void *arg) {
+    bench_data *data = (bench_data *) arg;
     size_t iters = 1 + ITERS / data->count;
     size_t iter;
     /* Verify the results in teardown, to avoid doing comparisons while benchmarking. */
@@ -88,7 +94,7 @@ static void bench_ecmult_teardown(void* arg) {
     }
 }
 
-static void generate_scalar(uint32_t num, secp256k1_scalar* scalar) {
+static void generate_scalar(uint32_t num, secp256k1_scalar *scalar) {
     secp256k1_sha256 sha256;
     unsigned char c[11] = {'e', 'c', 'm', 'u', 'l', 't', 0, 0, 0, 0};
     unsigned char buf[32];
@@ -104,7 +110,7 @@ static void generate_scalar(uint32_t num, secp256k1_scalar* scalar) {
     CHECK(!overflow);
 }
 
-static void run_test(bench_data* data, size_t count, int includes_g) {
+static void run_test(bench_data *data, size_t count, int includes_g) {
     char str[32];
     static const secp256k1_scalar zero = SECP256K1_SCALAR_CONST(0, 0, 0, 0, 0, 0, 0, 0);
     size_t iters = 1 + ITERS / count;
@@ -121,7 +127,9 @@ static void run_test(bench_data* data, size_t count, int includes_g) {
         secp256k1_scalar total = data->scalars[(data->offset1++) % POINTS];
         size_t i = 0;
         for (i = 0; i + 1 < count; ++i) {
-            secp256k1_scalar_mul(&tmp, &data->seckeys[(data->offset2++) % POINTS], &data->scalars[(data->offset1++) % POINTS]);
+            secp256k1_scalar_mul(&tmp,
+                                 &data->seckeys[(data->offset2++) % POINTS],
+                                 &data->scalars[(data->offset1++) % POINTS]);
             secp256k1_scalar_add(&total, &total, &tmp);
         }
         secp256k1_scalar_negate(&total, &total);
@@ -129,21 +137,21 @@ static void run_test(bench_data* data, size_t count, int includes_g) {
     }
 
     /* Run the benchmark. */
-    sprintf(str, includes_g ? "ecmult_%ig" : "ecmult_%i", (int)count);
+    sprintf(str, includes_g ? "ecmult_%ig" : "ecmult_%i", (int) count);
     run_benchmark(str, bench_ecmult, bench_ecmult_setup, bench_ecmult_teardown, data, 10, count * (1 + ITERS / count));
 }
 
 int main(int argc, char **argv) {
     bench_data data;
     int i, p;
-    secp256k1_gej* pubkeys_gej;
+    secp256k1_gej *pubkeys_gej;
     size_t scratch_size;
 
     if (argc > 1) {
-        if(have_flag(argc, argv, "pippenger_wnaf")) {
+        if (have_flag(argc, argv, "pippenger_wnaf")) {
             printf("Using pippenger_wnaf:\n");
             data.ecmult_multi = secp256k1_ecmult_pippenger_batch_single;
-        } else if(have_flag(argc, argv, "strauss_wnaf")) {
+        } else if (have_flag(argc, argv, "strauss_wnaf")) {
             printf("Using strauss_wnaf:\n");
             data.ecmult_multi = secp256k1_ecmult_strauss_batch_single;
         }
@@ -153,7 +161,7 @@ int main(int argc, char **argv) {
 
     /* Allocate stuff */
     data.ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
-    scratch_size = secp256k1_strauss_scratch_size(POINTS) + STRAUSS_SCRATCH_OBJECTS*16;
+    scratch_size = secp256k1_strauss_scratch_size(POINTS) + STRAUSS_SCRATCH_OBJECTS * 16;
     data.scratch = secp256k1_scratch_space_create(data.ctx, scratch_size);
     data.scalars = malloc(sizeof(secp256k1_scalar) * POINTS);
     data.seckeys = malloc(sizeof(secp256k1_scalar) * POINTS);
@@ -192,5 +200,5 @@ int main(int argc, char **argv) {
     free(data.output);
     free(data.expected_output);
 
-    return(0);
+    return (0);
 }

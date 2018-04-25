@@ -18,21 +18,21 @@
 #endif
 
 typedef struct {
-    secp256k1_context *ctx;
-    unsigned char msg[32];
-    unsigned char key[32];
-    unsigned char sig[72];
-    size_t siglen;
-    unsigned char pubkey[33];
-    size_t pubkeylen;
+  secp256k1_context *ctx;
+  unsigned char msg[32];
+  unsigned char key[32];
+  unsigned char sig[72];
+  size_t siglen;
+  unsigned char pubkey[33];
+  size_t pubkeylen;
 #ifdef ENABLE_OPENSSL_TESTS
-    EC_GROUP* ec_group;
+  EC_GROUP* ec_group;
 #endif
 } benchmark_verify_t;
 
-static void benchmark_verify(void* arg) {
+static void benchmark_verify(void *arg) {
     int i;
-    benchmark_verify_t* data = (benchmark_verify_t*)arg;
+    benchmark_verify_t *data = (benchmark_verify_t *) arg;
 
     for (i = 0; i < 20000; i++) {
         secp256k1_pubkey pubkey;

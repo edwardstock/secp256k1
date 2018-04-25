@@ -12,14 +12,14 @@
 #include "bench.h"
 
 typedef struct {
-    secp256k1_context *ctx;
-    secp256k1_pubkey point;
-    unsigned char scalar[32];
+  secp256k1_context *ctx;
+  secp256k1_pubkey point;
+  unsigned char scalar[32];
 } bench_ecdh_data;
 
-static void bench_ecdh_setup(void* arg) {
+static void bench_ecdh_setup(void *arg) {
     int i;
-    bench_ecdh_data *data = (bench_ecdh_data*)arg;
+    bench_ecdh_data *data = (bench_ecdh_data *) arg;
     const unsigned char point[] = {
         0x03,
         0x54, 0x94, 0xc1, 0x5d, 0x32, 0x09, 0x97, 0x06,
@@ -36,10 +36,10 @@ static void bench_ecdh_setup(void* arg) {
     CHECK(secp256k1_ec_pubkey_parse(data->ctx, &data->point, point, sizeof(point)) == 1);
 }
 
-static void bench_ecdh(void* arg) {
+static void bench_ecdh(void *arg) {
     int i;
     unsigned char res[32];
-    bench_ecdh_data *data = (bench_ecdh_data*)arg;
+    bench_ecdh_data *data = (bench_ecdh_data *) arg;
 
     for (i = 0; i < 20000; i++) {
         CHECK(secp256k1_ecdh(data->ctx, res, &data->point, data->scalar) == 1);

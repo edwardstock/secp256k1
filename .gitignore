@@ -1,3 +1,5 @@
+.idea
+cmake-build-debug
 bench_inv
 bench_ecdh
 bench_ecmult

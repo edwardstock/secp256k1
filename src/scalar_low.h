@@ -7,9 +7,17 @@
 #ifndef SECP256K1_SCALAR_REPR_H
 #define SECP256K1_SCALAR_REPR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 /** A scalar modulo the group order of the secp256k1 curve. */
 typedef uint32_t secp256k1_scalar;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SECP256K1_SCALAR_REPR_H */

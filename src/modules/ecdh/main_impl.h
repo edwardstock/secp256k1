@@ -7,10 +7,17 @@
 #ifndef SECP256K1_MODULE_ECDH_MAIN_H
 #define SECP256K1_MODULE_ECDH_MAIN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "include/secp256k1_ecdh.h"
 #include "ecmult_const_impl.h"
 
-int secp256k1_ecdh(const secp256k1_context* ctx, unsigned char *result, const secp256k1_pubkey *point, const unsigned char *scalar) {
+int secp256k1_ecdh(const secp256k1_context *ctx,
+                   unsigned char *result,
+                   const secp256k1_pubkey *point,
+                   const unsigned char *scalar) {
     int ret = 0;
     int overflow = 0;
     secp256k1_gej res;
@@ -50,5 +57,9 @@ int secp256k1_ecdh(const secp256k1_context* ctx, unsigned char *result, const se
     secp256k1_scalar_clear(&s);
     return ret;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SECP256K1_MODULE_ECDH_MAIN_H */

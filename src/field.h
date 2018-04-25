@@ -7,6 +7,10 @@
 #ifndef SECP256K1_FIELD_H
 #define SECP256K1_FIELD_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** Field element module.
  *
  *  Field elements can be represented in several ways, but code accessing
@@ -89,7 +93,7 @@ static void secp256k1_fe_add(secp256k1_fe *r, const secp256k1_fe *a);
 
 /** Sets a field element to be the product of two others. Requires the inputs' magnitudes to be at most 8.
  *  The output magnitude is 1 (but not guaranteed to be normalized). */
-static void secp256k1_fe_mul(secp256k1_fe *r, const secp256k1_fe *a, const secp256k1_fe * SECP256K1_RESTRICT b);
+static void secp256k1_fe_mul(secp256k1_fe *r, const secp256k1_fe *a, const secp256k1_fe *SECP256K1_RESTRICT b);
 
 /** Sets a field element to be the square of another. Requires the input's magnitude to be at most 8.
  *  The output magnitude is 1 (but not guaranteed to be normalized). */
@@ -128,5 +132,9 @@ static void secp256k1_fe_storage_cmov(secp256k1_fe_storage *r, const secp256k1_f
 
 /** If flag is true, set *r equal to *a; otherwise leave it. Constant-time. */
 static void secp256k1_fe_cmov(secp256k1_fe *r, const secp256k1_fe *a, int flag);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SECP256K1_FIELD_H */

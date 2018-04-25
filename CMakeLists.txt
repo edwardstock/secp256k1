@@ -1,236 +1,96 @@
-cmake_minimum_required(VERSION 2.8)
-project(libsecp256k1)
+#
+# MinterCore. 2018
+#
+# @author Eduard Maximovich <edward.vstock@gmail.com>
+# native library secp256k1 and jni bindings
+#
 
-set(VERSION_MAJOR  0)
-set(VERSION_MINOR  0)
-set(VERSION_BUGFIX 0)
-set(VERSION "0.0.0")
+cmake_minimum_required(VERSION 3.4)
+project(secp256k1 LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 14)
 
+include(AndroidDetermine.cmake)
+include(CheckTypeSize)
 
-#-----------------------------------------------------------------------------
-# Options for building
+check_type_size("unsigned __int128" HAVE_BIGNUM LANGUAGE CXX)
 
-option(BUILD_VERBOSE       "Verbose build output." ON)
-#option(BUILD_DOCUMENTATION "Build the Doxygen documentation." ON)
-option(BUILD_TESTS         "Build the tests." ON)
-option(BUILD_BENCHMARK     "Build the benchmark." ON)
+set(COMMON_COMPILE_FLAGS ENABLE_MODULE_RECOVERY ENABLE_MODULE_ECDH USE_ECMULT_STATIC_PRECOMPUTATION USE_FIELD_INV_BUILTIN USE_NUM_NONE USE_SCALAR_INV_BUILTIN)
+if (MSVC)
+	set(COMPILE_FLAGS USE_FIELD_10X26 USE_SCALAR_8X32)
+	set(COMPILE_OPTIONS "")
+else ()
+	set(COMPILE_FLAGS USE_FIELD_5X52 USE_SCALAR_4X64 HAVE_BUILTIN_EXPECT)
+	if (HAVE_UINT128)
+		set(COMPILE_FLAGS "${COMPILE_FLAGS} HAVE___INT128")
+		add_definitions(-DHAVE___INT128=1)
+	endif ()
+	set(COMPILE_OPTIONS -O3 -W -Wno-narrowing -Wall -Wextra -Wcast-align -Wnested-externs -Wshadow -Wstrict-prototypes -Wno-unused-function -Wno-long-long -Wno-overlength-strings -fvisibility=hidden)
+endif ()
 
-option(ENDOMORPHISM                  "Enable  endomorphism." OFF)
-set(FIELD  "gmp"       CACHE <TYPE>  "Field operations: gmp|64bit|64bit_asm|32bit")
-set(BIGNUM "gmp"       CACHE <TYPE>  "Bignum Implementation: gmp|openssl")
+#add_executable(gen_context src/gen_context.c)
+#target_include_directories(gen_context PRIVATE ${CMAKE_SOURCE_DIR})
 
-option(RPM                 "Build a RPM" OFF)
-option(DEB                 "Build a DEB" OFF)
+#add_custom_target(ecmult_static_context gen_context WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
-if(BUILD_VERBOSE)
-  set(CMAKE_VERBOSE_MAKEFILE true)
-endif()
+set(all_sources
+    src/basic-config.h
+    src/ecdsa.h
+    src/ecdsa_impl.h
+    src/eckey.h
+    src/eckey_impl.h
+    src/ecmult.h
+    src/ecmult_const.h
+    src/ecmult_const_impl.h
+    src/ecmult_gen.h
+    src/ecmult_gen_impl.h
+    src/ecmult_impl.h
+    src/field.h
+    src/field_5x52.h
+    src/field_5x52_impl.h
+    src/field_5x52_int128_impl.h
+    src/field_10x26.h
+    src/field_10x26_impl.h
+    src/field_impl.h
+    src/group.h
+    src/group_impl.h
+    src/hash.h
+    src/hash_impl.h
+    src/num.h
+    src/num_gmp.h
+    src/num_gmp_impl.h
+    src/num_impl.h
+    src/scalar.h
+    src/scalar_4x64.h
+    src/scalar_4x64_impl.h
+    src/scalar_8x32.h
+    src/scalar_8x32_impl.h
+    src/scalar_impl.h
+    src/scalar_low.h
+    src/scalar_low_impl.h
+    src/scratch.h
+    src/scratch_impl.h
+    src/modules/ecdh/main_impl.h
+    src/modules/recovery/main_impl.h
+    src/secp256k1.cpp
+    include/secp256k1.h
+    include/secp256k1_ecdh.h
+    include/secp256k1_recovery.h
+    )
 
+set(bignum_cxx uint128_t/uint128_t.h uint128_t/uint128_t.cpp)
+set(main_c_sources ${all_sources})
+set(secp256k1_jni_sources src/java/NativeSecp256k1.cpp src/java/Secp256k1Context.cpp)
 
-#-----------------------------------------------------------------------------
-# Print system information and build options
+# Main lib
+add_library(secp256k1_core STATIC ${main_c_sources} ${bignum_cxx})
+target_compile_definitions(secp256k1_core PRIVATE ${COMMON_COMPILE_FLAGS} ${COMPILE_FLAGS})
+target_include_directories(secp256k1_core PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src)
+target_compile_options(secp256k1_core PRIVATE ${COMPILE_OPTIONS})
 
-message(STATUS "General -------------------------------------")
-message(STATUS "CMake version:          ${CMAKE_VERSION}")
-message(STATUS "System:                 ${CMAKE_SYSTEM}")
-message(STATUS "Processor:              ${CMAKE_SYSTEM_PROCESSOR}")
-
-message(STATUS "Verbose:                ${BUILD_VERBOSE}")
-message(STATUS "Testing:                ${BUILD_TESTS}")
-message(STATUS "Benchmark:              ${BUILD_BENCHMARK}")
-
-message(STATUS "Build Options -------------------------------")
-message(STATUS "Endomorphism:           ${ENDOMORPHISM}")
-message(STATUS "Field operations:       ${FIELD}")
-message(STATUS "Bignum Implementation:  ${BIGNUM}")
-
-message(STATUS "Packaging -----------------------------------")
-message(STATUS "Build RPM:              ${RPM}")
-message(STATUS "Build DEB:              ${DEB}")
-
-
-#-----------------------------------------------------------------------------
-# Collect all binaries into bin subdirectory
-
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH  ${CMAKE_CURRENT_BINARY_DIR}/lib)
-
-
-#-----------------------------------------------------------------------------
-# Set compiler flags
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
-
-if(MSVC)
-  add_definitions(-D_UNICODE)
-endif()
-
-message(STATUS "C Compiler ID: ${CMAKE_C_COMPILER_ID}")
-message(STATUS "C Flags:       ${CMAKE_C_FLAGS}")
-message(STATUS "C link flags:  ${CMAKE_C_LINK_FLAGS}")
-
-
-#-----------------------------------------------------------------------------
-# System libraries used for linking.
-
-if(UNIX AND NOT APPLE)
-  list(APPEND OPENTXS_SYSTEM_LIBRARIES rt)
-  list(APPEND OPENTXS_SYSTEM_LIBRARIES dl)
-endif()
-
-
-#-----------------------------------------------------------------------------
-# Force out-of-source build
-
-if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_BINARY_DIR})
-message(FATAL_ERROR "CMake generation is not allowed within the source directory!
-Remove the CMakeCache.txt file and try again from another folder, e.g.:
-
-   rm CMakeCache.txt
-   mkdir build
-   cd build
-   cmake ..
-")
-endif()
-
-
-#-----------------------------------------------------------------------------
-# Default to Release build
-
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release CACHE STRING
-      "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
-      FORCE)
-endif()
+# JNI
+add_library(secp256k1_jni SHARED ${secp256k1_jni_sources})
+target_link_libraries(secp256k1_jni secp256k1_core)
+target_include_directories(secp256k1_jni PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src)
 
 
-#-----------------------------------------------------------------------------
-# Source Definitions
-
-if(ENDOMORPHISM)
-  add_definitions(-DUSE_ENDOMORPHISM)
-endif()
-
-if(FIELD MATCHES 64bit_asm)
-  if(NOT "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86_64")
-    message(FATAL_ERROR "64bit_asm field support explicitly requested but is not compatible with this host.")
-  else()
-    enable_language(ASM_NASM)
-    if("ASM${ASM_DIALECT}" STREQUAL "YASM")
-      add_definitions(-DUSE_FIELD_5X52)
-      add_definitions(-DUSE_FIELD_5X52_ASM)
-      set(USE_ASM 1)
-    else()
-      message(FATAL_ERROR "64bit_asm field support explicitly requested but yasm was not found.")
-    endif()
-  endif()
-elseif(FIELD MATCHES gmp) #default
-  set(USE_GMP 1)
-  add_definitions(-DUSE_FIELD_GMP)
-  add_definitions(-DHAVE_LIBGMP)
-elseif(FIELD MATCHES 64bit)
-  add_definitions(-DUSE_FIELD_5X52)
-  add_definitions(-DUSE_FIELD_5X52_INT128)
-elseif(FIELD MATCHES 32bit)
-  add_definitions(-DUSE_FIELD_10X26)
-else()
-  message(FATAL_ERROR "Invalid field implementation.")
-endif()
-
-if(BIGNUM MATCHES gmp) #default
-  set(USE_GMP 1)
-  add_definitions(-DHAVE_LIBGMP)
-  add_definitions(-DUSE_NUM_GMP)
-  add_definitions(-DUSE_FIELD_INV_NUM)
-elseif(BIGNUM MATCHES openssl)
-  find_package(OpenSSL REQUIRED)
-  set(USE_SSL 1)
-  add_definitions(-DUSE_NUM_OPENSSL)
-  add_definitions(-DUSE_FIELD_INV_BUILTIN)
-else()
-  message(FATAL_ERROR "Invalid field implementation.")
-endif()
-
-if(USE_GMP)
-  find_path(GMP_INCLUDE_DIR gmp.h)
-  if(GMP_INCLUDE_DIR STREQUAL "GMP_INCLUDE_DIR-NOTFOUND")
-    message(FATAL_ERROR "Couldn't find gmp.h. Please install GMP.")  
-  else()
-    message(STATUS "Found GMP: ${GMP_INCLUDE_DIR}")
-  endif()
-endif()
-
-#-----------------------------------------------------------------------------
-# Build source
-
-#Fix RPATH
-if(APPLE)
-  set(CMAKE_INSTALL_NAME_DIR @rpath)
-endif()
-if(NOT RPM)
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-endif()
-
-add_subdirectory(src)
-
-
-#-----------------------------------------------------------------------------
-# Install
-
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
-        DESTINATION include)
-
-
-#-----------------------------------------------------------------------------
-# Uninstal
-configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/uninstall.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/uninstall.cmake"
-    IMMEDIATE @ONLY)
-
-add_custom_target(uninstall
-    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/uninstall.cmake)
-
-    
-#-----------------------------------------------------------------------------
-# Packaging
-
-set(CPACK_GENERATOR "TGZ")
-set(CPACK_PACKAGE_VERSION ${VERSION})
-set(CPACK_PACKAGE_NAME "libsecp256k1")
-set(CPACK_PACKAGE_RELEASE 1)
-set(CPACK_PACKAGE_CONTACT "Lucas Betschart")
-set(CPACK_PACKAGE_VENDOR "Bitcoin Community")
-set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Optimized C library for EC operations on curve secp256k1")
-set(CPACK_PACKAGE_DESCRIPTION "Optimized C library for EC operations on curve secp256k1
-
-This library is experimental, so use at your own risk.
-
-Features:
-
-- Low-level field and group operations on secp256k1.
-- ECDSA signing/verification and key generation.
-- Adding/multiplying private/public keys.
-- Serialization/parsing of private keys, public keys, signatures.
-- Very efficient implementation.
-")
-
-if(RPM)
-  set(CPACK_GENERATOR "RPM")
-  set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
-  set(CPACK_RPM_COMPONENT_INSTALL ON)
-  set(CPACK_RPM_CHANGELOG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ChangeLog")
-endif()
-
-if(DEB)
-  set(CPACK_GENERATOR "DEB")
-  set(CPACK_DEBIAN_PACKAGE_DEPENDS "")
-  set(CPACK_DEBIAN_PACKAGE_PRIORITY "extra")
-  set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
-  set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/bitcoin/secp256k1")
-  set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Lucas Betschart")
-endif()
-
-include(CPack)
+# TODO - generate jni sources with build-time namespaces

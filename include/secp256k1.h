@@ -1,6 +1,8 @@
 #ifndef SECP256K1_H
 #define SECP256K1_H
 
+//#include "../uint128_t/uint128_t.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -7,14 +7,18 @@
 #ifndef SECP256K1_FIELD_REPR_H
 #define SECP256K1_FIELD_REPR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 typedef struct {
-    /* X = sum(i=0..4, elem[i]*2^52) mod n */
-    uint64_t n[5];
+  /* X = sum(i=0..4, elem[i]*2^52) mod n */
+  uint64_t n[5];
 #ifdef VERIFY
-    int magnitude;
-    int normalized;
+  int magnitude;
+  int normalized;
 #endif
 } secp256k1_fe;
 
@@ -34,7 +38,7 @@ typedef struct {
 #endif
 
 typedef struct {
-    uint64_t n[4];
+  uint64_t n[4];
 } secp256k1_fe_storage;
 
 #define SECP256K1_FE_STORAGE_CONST(d7, d6, d5, d4, d3, d2, d1, d0) {{ \
@@ -43,5 +47,9 @@ typedef struct {
     (d4) | (((uint64_t)(d5)) << 32), \
     (d6) | (((uint64_t)(d7)) << 32) \
 }}
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SECP256K1_FIELD_REPR_H */

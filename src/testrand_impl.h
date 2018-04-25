@@ -7,6 +7,10 @@
 #ifndef SECP256K1_TESTRAND_IMPL_H
 #define SECP256K1_TESTRAND_IMPL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <string.h>
 
@@ -23,9 +27,12 @@ SECP256K1_INLINE static void secp256k1_rand_seed(const unsigned char *seed16) {
     secp256k1_rfc6979_hmac_sha256_initialize(&secp256k1_test_rng, seed16, 16);
 }
 
-SECP256K1_INLINE static uint32_t secp256k1_rand32(void) {
+SECP256K1_INLINE static uint32_t
+secp256k1_rand32(void) {
     if (secp256k1_test_rng_precomputed_used == 8) {
-        secp256k1_rfc6979_hmac_sha256_generate(&secp256k1_test_rng, (unsigned char*)(&secp256k1_test_rng_precomputed[0]), sizeof(secp256k1_test_rng_precomputed));
+        secp256k1_rfc6979_hmac_sha256_generate(&secp256k1_test_rng,
+                                               (unsigned char *) (&secp256k1_test_rng_precomputed[0]),
+                                               sizeof(secp256k1_test_rng_precomputed));
         secp256k1_test_rng_precomputed_used = 0;
     }
     return secp256k1_test_rng_precomputed[secp256k1_test_rng_precomputed_used++];
@@ -34,13 +41,13 @@ SECP256K1_INLINE static uint32_t secp256k1_rand32(void) {
 static uint32_t secp256k1_rand_bits(int bits) {
     uint32_t ret;
     if (secp256k1_test_rng_integer_bits_left < bits) {
-        secp256k1_test_rng_integer |= (((uint64_t)secp256k1_rand32()) << secp256k1_test_rng_integer_bits_left);
+        secp256k1_test_rng_integer |= (((uint64_t) secp256k1_rand32()) << secp256k1_test_rng_integer_bits_left);
         secp256k1_test_rng_integer_bits_left += 32;
     }
     ret = secp256k1_test_rng_integer;
     secp256k1_test_rng_integer >>= bits;
     secp256k1_test_rng_integer_bits_left -= bits;
-    ret &= ((~((uint32_t)0)) >> (32 - bits));
+    ret &= ((~((uint32_t) 0)) >> (32 - bits));
     return ret;
 }
 
@@ -56,7 +63,8 @@ static uint32_t secp256k1_rand_int(uint32_t range) {
      * range is to 2**B. The array below (indexed by B) contains a 0 when the
      * first mechanism is to be used, and the number A otherwise.
      */
-    static const int addbits[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 1, 0};
+    static const int
+        addbits[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 1, 0};
     uint32_t trange, mult;
     int bits = 0;
     if (range <= 1) {
@@ -69,13 +77,13 @@ static uint32_t secp256k1_rand_int(uint32_t range) {
     }
     if (addbits[bits]) {
         bits = bits + addbits[bits];
-        mult = ((~((uint32_t)0)) >> (32 - bits)) / range;
+        mult = ((~((uint32_t) 0)) >> (32 - bits)) / range;
         trange = range * mult;
     } else {
         trange = range;
         mult = 1;
     }
-    while(1) {
+    while (1) {
         uint32_t x = secp256k1_rand_bits(bits);
         if (x < trange) {
             return (mult == 1) ? x : (x % range);
@@ -106,5 +114,9 @@ static void secp256k1_rand_bytes_test(unsigned char *bytes, size_t len) {
 static void secp256k1_rand256_test(unsigned char *b32) {
     secp256k1_rand_bytes_test(b32, 32);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SECP256K1_TESTRAND_IMPL_H */

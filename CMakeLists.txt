@@ -19,10 +19,10 @@ if (MSVC)
 	set(COMPILE_FLAGS USE_FIELD_10X26 USE_SCALAR_8X32)
 	set(COMPILE_OPTIONS "")
 else ()
-	set(COMPILE_FLAGS USE_FIELD_5X52 USE_SCALAR_4X64 HAVE_BUILTIN_EXPECT)
-	if (HAVE_UINT128)
-		set(COMPILE_FLAGS "${COMPILE_FLAGS} HAVE___INT128")
-		add_definitions(-DHAVE___INT128=1)
+	#  -DUSE_ECMULT_STATIC_PRECOMPUTATION -DUSE_FIELD_5X52 -DUSE_SCALAR_4X64
+	add_definitions(-DHAVE_BUILTIN_EXPECT -DUSE_FIELD_10X26 -DUSE_SCALAR_8X32)
+	if (HAVE_BIGNUM)
+		add_definitions(-DHAVE___INT128)
 	endif ()
 	set(COMPILE_OPTIONS -O3 -W -Wno-narrowing -Wall -Wextra -Wcast-align -Wnested-externs -Wshadow -Wstrict-prototypes -Wno-unused-function -Wno-long-long -Wno-overlength-strings -fvisibility=hidden)
 endif ()
@@ -75,22 +75,61 @@ set(all_sources
     include/secp256k1.h
     include/secp256k1_ecdh.h
     include/secp256k1_recovery.h
+    src/util.h
+    src/ecmult_static_context.h
     )
 
 set(bignum_cxx uint128_t/uint128_t.h uint128_t/uint128_t.cpp)
 set(main_c_sources ${all_sources})
 set(secp256k1_jni_sources src/java/NativeSecp256k1.cpp src/java/Secp256k1Context.cpp)
 
+# Context generator
+set(GENERATOR_BIN_PATH ${CMAKE_BINARY_DIR}/src)
+set(GENERATED_PATH ${CMAKE_ROOT_SOURCE_DIR}/src)
+set(GENERATED_CONTEXT_PATH "src/ecmult_static_context.h")
+message(STATUS "Context generator bin path: ${GENERATOR_BIN_PATH}")
+
+if (ENABLE_GENERATE_CONTEXT)
+	add_executable(gen_context
+	               src/gen_context.cpp
+	               src/ecmult.h
+	               src/ecmult_gen.h
+	               src/ecmult_gen_impl.h
+	               src/ecmult_const.h
+	               src/ecmult_const_impl.h
+	               )
+	target_include_directories(gen_context PRIVATE ${CMAKE_SOURCE_DIR})
+	message(STATUS "Generate static context in ${GENERATED_CONTEXT_PATH}")
+
+	add_custom_target(ecmult_static_context gen_context WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+	set(main_c_sources
+	    ${main_c_sources}
+	    ${GENERATED_CONTEXT_PATH}
+	    )
+endif ()
+
 # Main lib
-add_library(secp256k1_core STATIC ${main_c_sources} ${bignum_cxx})
+if (NOT HAVE_BIGNUM)
+	set(main_c_sources
+	    ${main_c_sources}
+	    ${bignum_cxx}
+	    )
+endif ()
+add_library(secp256k1_core STATIC ${main_c_sources})
+
 target_compile_definitions(secp256k1_core PRIVATE ${COMMON_COMPILE_FLAGS} ${COMPILE_FLAGS})
 target_include_directories(secp256k1_core PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src)
 target_compile_options(secp256k1_core PRIVATE ${COMPILE_OPTIONS})
 
-# JNI
-add_library(secp256k1_jni SHARED ${secp256k1_jni_sources})
-target_link_libraries(secp256k1_jni secp256k1_core)
-target_include_directories(secp256k1_jni PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src)
+if (CMAKE_ANDROID_NDK)
+	# JNI
+	add_library(secp256k1_jni SHARED ${secp256k1_jni_sources})
+	target_link_libraries(secp256k1_jni secp256k1_core)
+	target_include_directories(secp256k1_jni PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src)
+endif ()
 
+if (ENABLE_GENERATE_CONTEXT)
+	add_dependencies(secp256k1_core ecmult_static_context)
+endif ()
 
 # TODO - generate jni sources with build-time namespaces

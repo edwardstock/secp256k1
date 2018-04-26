@@ -14,7 +14,7 @@ extern "C" {
  * Signature: (J)J
  */
 JNIEXPORT jlong
-JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_ctx_clone
+JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1ctx_1clone
     (JNIEnv *, jclass, jlong);
 
 /*
@@ -23,7 +23,7 @@ JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_ctx_clon
  * Signature: (Ljava/nio/ByteBuffer;J)I
  */
 JNIEXPORT jint
-JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_context_randomize
+JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1context_1randomize
     (JNIEnv *, jclass, jobject, jlong);
 
 /*
@@ -32,7 +32,7 @@ JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_context_
  * Signature: (Ljava/nio/ByteBuffer;J)[[B
  */
 JNIEXPORT jobjectArray
-JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_privkey_tweak_1add
+JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1privkey_1tweak_1add
     (JNIEnv *, jclass, jobject, jlong);
 
 /*
@@ -41,7 +41,7 @@ JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_privkey_
  * Signature: (Ljava/nio/ByteBuffer;J)[[B
  */
 JNIEXPORT jobjectArray
-JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_privkey_tweak_1mul
+JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1privkey_1tweak_1mul
     (JNIEnv *, jclass, jobject, jlong);
 
 /*
@@ -50,7 +50,7 @@ JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_privkey_
  * Signature: (Ljava/nio/ByteBuffer;JI)[[B
  */
 JNIEXPORT jobjectArray
-JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_pubkey_tweak_1add
+JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1pubkey_1tweak_1add
     (JNIEnv *, jclass, jobject, jlong, jint);
 
 /*
@@ -59,7 +59,7 @@ JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_pubkey_t
  * Signature: (Ljava/nio/ByteBuffer;JI)[[B
  */
 JNIEXPORT jobjectArray
-JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_pubkey_tweak_1mul
+JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1pubkey_1tweak_1mul
     (JNIEnv *, jclass, jobject, jlong, jint);
 
 /*
@@ -68,7 +68,7 @@ JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_pubkey_t
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL
-Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_destroy_context
+Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1destroy_1context
 (JNIEnv * , jclass , jlong ) ;
 
 /*
@@ -77,7 +77,7 @@ Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_destroy_context
  * Signature: (Ljava/nio/ByteBuffer;JII)I
  */
 JNIEXPORT jint
-JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_ecdsa_verify
+JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1ecdsa_1verify
     (JNIEnv * , jclass, jobject, jlong, jint, jint);
 
 /*
@@ -86,8 +86,13 @@ JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_ecdsa_ve
  * Signature: (Ljava/nio/ByteBuffer;J)[[B
  */
 JNIEXPORT jobjectArray
-JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_ecdsa_sign
+JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1ecdsa_1sign
     (JNIEnv * , jclass, jobject, jlong);
+
+
+JNIEXPORT jobjectArray
+JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1ecdsa_1sign_1recoverable_1serialized
+    (JNIEnv *, jclass, jobject, jlong);
 
 /*
  * Class:     org_bitcoin_NativeSecp256k1
@@ -95,7 +100,7 @@ JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_ecdsa_si
  * Signature: (Ljava/nio/ByteBuffer;J)I
  */
 JNIEXPORT jint
-JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_ec_seckey_verify
+JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1ec_1seckey_1verify
     (JNIEnv * , jclass, jobject, jlong);
 
 /*
@@ -104,7 +109,7 @@ JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_ec_secke
  * Signature: (Ljava/nio/ByteBuffer;J)[[B
  */
 JNIEXPORT jobjectArray
-JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_ec_pubkey_create
+JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1ec_1pubkey_1create
     (JNIEnv * , jclass, jobject, jlong);
 
 /*
@@ -113,7 +118,7 @@ JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_ec_pubke
  * Signature: (Ljava/nio/ByteBuffer;JI)[[B
  */
 JNIEXPORT jobjectArray
-JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_ec_pubkey_parse
+JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1ec_1pubkey_1parse
     (JNIEnv * , jclass, jobject, jlong, jint);
 
 /*
@@ -122,7 +127,7 @@ JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_ec_pubke
  * Signature: (Ljava/nio/ByteBuffer;JI)[[B
  */
 JNIEXPORT jobjectArray
-JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_ecdh
+JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1ecdh
     (JNIEnv * env, jclass
 classObject , jobject byteBufferObject, jlong
 ctx_l , jint publen ) ;

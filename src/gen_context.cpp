@@ -6,12 +6,14 @@
 
 #define USE_BASIC_CONFIG 1
 
+#include <string>
 #include "basic-config.h"
 #include "include/secp256k1.h"
 #include "field_impl.h"
 #include "scalar_impl.h"
 #include "group_impl.h"
 #include "ecmult_gen_impl.h"
+
 
 static void default_error_callback_fn(const char *str, void *data) {
     (void) data;
@@ -24,16 +26,32 @@ static const secp256k1_callback default_error_callback = {
     NULL
 };
 
+/**
+ * Usage: ./gen_context /path/to/[ecmult_static_context.h]
+ * set only target path, not a file name
+ * @param argc
+ * @param argv
+ * @return
+ */
 int main(int argc, char **argv) {
     secp256k1_ecmult_gen_context ctx;
     int inner;
     int outer;
     FILE *fp;
 
-    (void) argc;
-    (void) argv;
+    if(argc == 2) {
+        std::string inFile = argv[1];
+        if(inFile[inFile.size()-1] == '/') {
+            inFile += "ecmult_static_context.h";
+        } else {
+            inFile += "/ecmult_static_context.h";
+        }
+        fp = fopen(inFile.c_str(), "w");
+    } else {
+        fp = fopen("src/ecmult_static_context.h", "w");
+    }
 
-    fp = fopen("src/ecmult_static_context.h", "w");
+
     if (fp == NULL) {
         fprintf(stderr, "Could not open src/ecmult_static_context.h for writing!\n");
         return -1;

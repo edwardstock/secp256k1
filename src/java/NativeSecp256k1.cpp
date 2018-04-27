@@ -7,6 +7,22 @@
 #include "include/secp256k1_ecdh.h"
 
 JNIEXPORT jlong
+JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1init_1context(JNIEnv * env,
+                                                                                       jclass
+classObject) {
+secp256k1_context *ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
+
+(void)
+classObject;
+(void)
+env;
+
+return (uintptr_t)
+ctx;
+}
+
+
+JNIEXPORT jlong
 JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1ctx_1clone
     (JNIEnv *env, jclass
     classObject,
@@ -235,12 +251,15 @@ JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1ec_1sec
         );
 }
 
+
 JNIEXPORT jobjectArray
-JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1ec_1pubkey_1create
-    (JNIEnv *env, jclass
-    classObject,
-     jobject byteBufferObject, jlong
-     ctx_l) {
+JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1ec_1pubkey_1create(
+    JNIEnv * env, jclass
+classObject,
+jobject byteBufferObject, jlong
+ctx_l,
+jboolean compressed
+) {
     secp256k1_context *ctx = (secp256k1_context *) (uintptr_t) ctx_l;
     const unsigned char *secKey = (unsigned char *) (env)->GetDirectBufferAddress(byteBufferObject);
 
@@ -255,8 +274,10 @@ JNICALL Java_network_minter_mintercore_crypto_NativeSecp256k1_secp256k1_1ec_1pub
     unsigned char outputSer[65];
     size_t outputLen = 65;
 
+int compFlag = compressed == 1 ? SECP256K1_EC_COMPRESSED : SECP256K1_EC_UNCOMPRESSED;
+
     if (ret) {
-        int ret2 = secp256k1_ec_pubkey_serialize(ctx, outputSer, &outputLen, &pubkey, SECP256K1_EC_UNCOMPRESSED);
+int ret2 = secp256k1_ec_pubkey_serialize(ctx, outputSer, &outputLen, &pubkey, compFlag);
         (void)
             ret2;
     }

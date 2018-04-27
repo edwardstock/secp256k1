@@ -250,7 +250,7 @@ void run_context_tests(void) {
     CHECK(secp256k1_ecdsa_sig_verify(&vrfy->ecmult_ctx, &sigr, &sigs, &pub, &msg));
     CHECK(secp256k1_ecdsa_sig_verify(&both->ecmult_ctx, &sigr, &sigs, &pub, &msg));
 
-    /* cleanup */
+    /* contextCleanup */
     secp256k1_context_destroy(none);
     secp256k1_context_destroy(sign);
     secp256k1_context_destroy(vrfy);
@@ -292,7 +292,7 @@ void run_scratch_tests(void) {
     CHECK(secp256k1_scratch_max_allocation(scratch, 0) == 1000);
     CHECK(secp256k1_scratch_alloc(scratch, 500) == NULL);
 
-    /* cleanup */
+    /* contextCleanup */
     secp256k1_scratch_space_destroy(scratch);
     secp256k1_context_destroy(none);
 }

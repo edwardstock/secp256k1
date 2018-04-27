@@ -81,7 +81,7 @@ set(all_sources
 
 set(bignum_cxx uint128_t/uint128_t.h uint128_t/uint128_t.cpp)
 set(main_c_sources ${all_sources})
-set(secp256k1_jni_sources src/java/NativeSecp256k1.cpp src/java/Secp256k1Context.cpp)
+set(secp256k1_jni_sources src/java/NativeSecp256k1.cpp src/java/NativeSecp256k1.cpp)
 
 # Context generator
 set(GENERATOR_BIN_PATH ${CMAKE_BINARY_DIR}/src)
@@ -121,12 +121,11 @@ target_compile_definitions(secp256k1_core PRIVATE ${COMMON_COMPILE_FLAGS} ${COMP
 target_include_directories(secp256k1_core PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src)
 target_compile_options(secp256k1_core PRIVATE ${COMPILE_OPTIONS})
 
-if (CMAKE_ANDROID_NDK)
-	# JNI
-	add_library(secp256k1_jni SHARED ${secp256k1_jni_sources})
-	target_link_libraries(secp256k1_jni secp256k1_core)
-	target_include_directories(secp256k1_jni PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src)
-endif ()
+
+# JNI
+add_library(secp256k1_jni SHARED ${secp256k1_jni_sources})
+target_link_libraries(secp256k1_jni secp256k1_core)
+target_include_directories(secp256k1_jni PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src)
 
 if (ENABLE_GENERATE_CONTEXT)
 	add_dependencies(secp256k1_core ecmult_static_context)
